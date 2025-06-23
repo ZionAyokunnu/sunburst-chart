@@ -6,6 +6,3 @@ export { useEcosystem, EcosystemProvider } from './context/EcosystemContext';
 export { useToast, toast } from './context/use-toast';
 // Utility to transform raw indicators → sunburst nodes & links
 export { transformToSunburstData } from './utils/indicatorUtils';
-function useEcosystem() {
-    throw new Error('Function not implemented.');
-}
