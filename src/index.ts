@@ -1,23 +1,11 @@
-import React, { useState } from 'react';
-import { transformToSunburstData } from './utils/indicatorUtils';
-import { Indicator } from './types';
-  
-  const [coreIndicator, setCoreIndicator] = useState<Indicator | null>(null);
-  const [localIndicators, setLocalIndicators] = useState<Indicator[]>([]);
-  const { indicators, relationships, loading, error, userSettings, refreshData } = useEcosystem();
-    
-    
-    // Prepare sunburst data
-    const sunburstData = React.useMemo(() => {
-    if (coreIndicator && localIndicators.length > 0 && relationships.length > 0) {
-      return transformToSunburstData(localIndicators, relationships);
-    }
-    return { nodes: [], links: [] };
-  }, [coreIndicator, localIndicators, relationships]);
-
-
+// The core chart component
 export { default as SunburstChart } from './sunburst';
 
-function useEcosystem(): { indicators: any; relationships: any; loading: any; error: any; userSettings: any; refreshData: any; } {
-    throw new Error('Function not implemented.');
-}
+// Your data context (fetches from Supabase under the hood)
+export { useEcosystem, EcosystemProvider } from './context/EcosystemContext';
+
+// Toast utilities
+export { useToast, toast } from './context/use-toast';
+
+// Utility to transform raw indicators → sunburst nodes & links
+export { transformToSunburstData } from './utils/indicatorUtils';
