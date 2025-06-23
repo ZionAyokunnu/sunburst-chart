@@ -117,5 +117,3 @@ export const getParentsByChildId = async (child_id) => {
         throw error;
     return data;
 };
-// Get relationships for propagation
-const relationships = await getRelationships();

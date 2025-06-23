@@ -158,6 +158,3 @@ export const getParentsByChildId = async (child_id: string): Promise<Relationshi
 };
 
 
-
-  // Get relationships for propagation
-  const relationships = await getRelationships();

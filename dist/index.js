@@ -6,3 +6,10 @@ export { useEcosystem, EcosystemProvider } from './context/EcosystemContext';
 export { useToast, toast } from './context/use-toast';
 // Utility to transform raw indicators → sunburst nodes & links
 export { transformToSunburstData } from './utils/indicatorUtils';
+// // Prepare sunburst data
+//   const sunburstData = React.useMemo(() => {
+//     if (coreIndicator && localIndicators.length > 0 && relationships.length > 0) {
+//       return transformToSunburstData(localIndicators, relationships);
+//     }
+//     return { nodes: [], links: [] };
+//   }, [coreIndicator, localIndicators, relationships]);
