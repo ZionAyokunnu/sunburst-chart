@@ -36,7 +36,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
             .attr("transform", `translate(${width / 2}, ${height / 2})`);
         const container = svg
             .on("click", (event) => {
-            console.log("🕵️‍♂️ click at", d3.pointer(event), "pivotStack:", pivotStack);
             // get mouse coords relative to center
             const [mx, my] = d3.pointer(event);
             // Only allow center click if we can step back (pivotStack not empty)
@@ -63,10 +62,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
             });
         });
         // 1) Debug: dump all nodes & links
-        console.log("▶️ Sunburst data dump:", {
-            allNodes: Array.from(nodeMap.values()).map(n => n.id),
-            allLinks: links.map(l => `${l.parent_id}→${l.child_id}`)
-        });
         // Build inverse child-to-parent mapping
         const childToParents = new Map();
         links.forEach(link => {
@@ -75,8 +70,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
             }
             childToParents.get(link.child_id).push(link.parent_id);
         });
-        // 2) Debug: show the mapping
-        console.log("▶️ childToParents map:", Object.fromEntries(childToParents));
         // Drop self-parent entries so root detection ignores self-links
         childToParents.forEach((parents, childId) => {
             childToParents.set(childId, parents.filter(p => p !== childId));
@@ -88,7 +81,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
             return parents.length === 0;
         })
             .map(node => node.id);
-        console.log("▶️ Non-self orphan (root) candidates:", orphanIds);
         // Attach each child node under its parent(s) with relationship info
         links.forEach(link => {
             // Skip self-links to prevent cycles
@@ -121,8 +113,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
         const hierarchyData = pivotId !== null && pivotId !== 'root'
             ? nodeMap.get(pivotId)
             : { id: 'root', name: 'Root', children: rootNodes };
-        console.log('PivotId:', pivotId);
-        console.log('Hierarchy Data:', hierarchyData);
         // Create a lookup of influence_score for parent→child links
         const influenceScoreMap = new Map(links.map(link => [`${link.parent_id}_${link.child_id}`, link.correlation]));
         // Create hierarchy
@@ -140,7 +130,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
         // Calculate node values for sizing
         // root.sum((d: any) => d.value);
         // root.count()
-        console.log('Root before partition:', root.descendants().map(d => ({ id: d.data.id, depth: d.depth })));
         const radius = Math.min(width, height) / 2;
         const layers = maxLayers;
         const ringWidth = radius / layers;
@@ -149,19 +138,12 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
             .size([2 * Math.PI, layers]);
         // Compute the partition layout
         partition(root);
-        console.log('Root after partition:', root.descendants().map(d => ({
-            id: d.data.id,
-            depth: d.depth,
-            x0: d.x0, x1: d.x1,
-            y0: d.y0, y1: d.y1
-        })));
         // Initialize current positions for transitions
         root.each((d) => (d.current = d));
         // Include depth 0 when we have pivoted; otherwise skip the synthetic "Root"
         const minDepth = pivotId ? 0 : 2;
         const allNodes = root.descendants().filter((d) => d.depth >= minDepth && d.depth <= layers);
         const visibleNodes = allNodes.filter((d, i, arr) => arr.findIndex(x => x.data.id === d.data.id && x.depth === d.depth) === i);
-        console.log('Visible Nodes:', visibleNodes.map(d => ({ id: d.data.id, depth: d.depth })));
         // Notify parent of visible nodes change
         if (onVisibleNodesChange) {
             const mapped = visibleNodes.map(d => ({
@@ -171,7 +153,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
                 color: d.data.color,
                 category: d.data.category
             }));
-            console.log("STEP 1 ▶️ Sunburst emits visibleNodes:", mapped.map(n => n.id));
             const currentIds = mapped.map(n => n.id);
             // Only emit if IDs have changed
             if (JSON.stringify(currentIds) !== JSON.stringify(prevVisibleIds.current)) {
@@ -217,7 +198,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
                 setPivotId(null);
                 setPivotStack([]); // back to very top
                 onCoreChange?.(null);
-                console.log('STEP ③0 ▶️ Sunburst onCoreChange fired:', null);
                 return;
             }
             // Build and emit breadcrumb trail for this node
@@ -241,7 +221,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
                 }
                 setPivotId(d.data.id);
                 onCoreChange?.(d.data.id);
-                console.log('STEP ③0 ▶️ Sunburst onCoreChange fired:', d.data.id);
             }
             else {
                 // Leaf node ▼
@@ -256,7 +235,6 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
                     // UI logic
                     setSelectedId(d.data.id); // highlight the clicked leaf
                     onCoreChange?.(d.data.id); // panel now shows leaf details
-                    console.log('STEP ③0 ▶️ Sunburst leaf clicked - zoom →', parentId, ' core →', d.data.id);
                 }
                 // No navigation for leaf nodes
             }
@@ -328,10 +306,8 @@ const SunburstChart = ({ nodes, links, width = 600, height = 600, onSelect, maxL
                 .style("opacity", 1);
         }
         function clicked(event, p) {
-            console.log("↩️ centre clicked, pivotStack BEFORE:", pivotStackRef.current);
             // centre‑circle click ➜ pop one level off the stack
             if (pivotStackRef.current.length === 0) {
-                console.log("🚫 nothing to pop—already at root");
                 return; // already at global root
             }
             const newStack = [...pivotStack];

@@ -70,7 +70,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
     
     const container = svg
       .on("click", (event) => {
-        console.log("🕵️‍♂️ click at", d3.pointer(event), "pivotStack:", pivotStack);
+
         // get mouse coords relative to center
         const [mx, my] = d3.pointer(event);
         // Only allow center click if we can step back (pivotStack not empty)
@@ -98,10 +98,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
       });
     });
       // 1) Debug: dump all nodes & links
-  console.log("▶️ Sunburst data dump:", {
-    allNodes: Array.from(nodeMap.values()).map(n => n.id),
-    allLinks: links.map(l => `${l.parent_id}→${l.child_id}`)
-  });
+
     // Build inverse child-to-parent mapping
     const childToParents = new Map<string, string[]>();
     links.forEach(link => {
@@ -111,8 +108,6 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
       childToParents.get(link.child_id)!.push(link.parent_id);
     });
 
-      // 2) Debug: show the mapping
-  console.log("▶️ childToParents map:", Object.fromEntries(childToParents));
 
   // Drop self-parent entries so root detection ignores self-links
   childToParents.forEach((parents, childId) => {
@@ -125,7 +120,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
       return parents.length === 0;
     })
     .map(node => node.id);
-  console.log("▶️ Non-self orphan (root) candidates:", orphanIds);
+
 
     // Attach each child node under its parent(s) with relationship info
     links.forEach(link => {
@@ -161,9 +156,6 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
     const hierarchyData = pivotId !== null && pivotId !== 'root'
       ? nodeMap.get(pivotId)!
       : { id: 'root', name: 'Root', children: rootNodes };
-    
-    console.log('PivotId:', pivotId);
-    console.log('Hierarchy Data:', hierarchyData);
 
 
         // Create a lookup of influence_score for parent→child links
@@ -189,7 +181,6 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
     // Calculate node values for sizing
     // root.sum((d: any) => d.value);
     // root.count()
-    console.log('Root before partition:', root.descendants().map(d => ({ id: d.data.id, depth: d.depth })));
     
     const radius = Math.min(width, height) / 2;
     const layers = maxLayers;
@@ -201,12 +192,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
     
     // Compute the partition layout
     partition(root);
-    console.log('Root after partition:', root.descendants().map(d => ({
-      id: d.data.id,
-      depth: d.depth,
-      x0: d.x0, x1: d.x1,
-      y0: d.y0, y1: d.y1
-    })));
+
     // Initialize current positions for transitions
     root.each((d: any) => (d.current = d));
     
@@ -218,8 +204,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
         x => x.data.id === d.data.id && x.depth === d.depth
       ) === i
     );
-    
-    console.log('Visible Nodes:', visibleNodes.map(d => ({ id: d.data.id, depth: d.depth })));
+ 
     // Notify parent of visible nodes change
     if (onVisibleNodesChange) {
       const mapped = visibleNodes.map(d => ({
@@ -229,7 +214,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
         color: d.data.color,
         category: d.data.category
       }));
-      console.log("STEP 1 ▶️ Sunburst emits visibleNodes:", mapped.map(n => n.id));
+
       const currentIds = mapped.map(n => n.id);
       // Only emit if IDs have changed
       if (JSON.stringify(currentIds) !== JSON.stringify(prevVisibleIds.current)) {
@@ -283,7 +268,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
           setPivotId(null);
           setPivotStack([]);                     // back to very top
           onCoreChange?.(null)
-          console.log('STEP ③0 ▶️ Sunburst onCoreChange fired:', null);
+
           return;
         }
         // Build and emit breadcrumb trail for this node
@@ -308,7 +293,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
       }
           setPivotId(d.data.id);
           onCoreChange?.(d.data.id);
-          console.log('STEP ③0 ▶️ Sunburst onCoreChange fired:', d.data.id);
+
         }
           else {
             // Leaf node ▼
@@ -329,7 +314,7 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
               setSelectedId(d.data.id);          // highlight the clicked leaf
               onCoreChange?.(d.data.id);         // panel now shows leaf details
 
-              console.log('STEP ③0 ▶️ Sunburst leaf clicked - zoom →', parentId, ' core →', d.data.id);
+
             }
             // No navigation for leaf nodes
           }
@@ -408,10 +393,9 @@ const SunburstChart: React.FC<SunburstChartProps> = ({
     }
 
     function clicked(event, p) {
-      console.log("↩️ centre clicked, pivotStack BEFORE:", pivotStackRef.current);
+
       // centre‑circle click ➜ pop one level off the stack
       if (pivotStackRef.current.length === 0) {
-        console.log("🚫 nothing to pop—already at root");
         return;                       // already at global root
       }
       const newStack = [...pivotStack];
